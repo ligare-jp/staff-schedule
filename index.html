@@ -45,6 +45,8 @@
               letter-spacing:0;white-space:nowrap;font-variant-numeric:tabular-nums}
   .cal .c.work{background:var(--brand);box-shadow:none}
   .cal .c.work .dn{color:var(--navy)}
+  .cal .c .tm.trbox{font-size:10.5px;font-weight:400;line-height:1.7}
+  .cal .c .trno{color:#d0392b;font-weight:400}
   .cal .c.closed{background:var(--pale);box-shadow:none}
   .cal .c.closed .tm{font-weight:400;color:var(--mute);font-size:10.5px}
   .cal .c.blank{background:none;box-shadow:none}
@@ -148,8 +150,19 @@ function renderWho(){
 
 function renderView(){
   const ex = '数字は時刻です（例：<span class="en">9-14</span> は 9:00〜14:00、<span class="en">9:30-13</span> は 9:30〜13:00）。';
-  document.getElementById('legend').innerHTML = ex + (who === 'TR' ? '' : '<br>色の付いた日が出勤日です。');
+  document.getElementById('legend').innerHTML = who === 'TR' ? '' : ex + '<br>色の付いた日が出勤日です。';
   renderCalendar();
+}
+
+// フロアトレーナー：AM（休憩前）・PM（休憩後）それぞれ在中か不在か
+function trCell(slots){
+  const am = slots.filter(s => toMin(s.time) < 14*60), pm = slots.filter(s => toMin(s.time) >= 14*60);
+  const line = (label, part) => {
+    if (!part.length) return '';                      // 土曜の午後など、枠がない時間帯は出さない
+    const on = part.some(s => s.trainer);
+    return `<div class="trl"><span class="en">${label}</span>：<span class="${on ? '' : 'trno'}">${on ? '在中' : '不在'}</span></div>`;
+  };
+  return `<div class="tm trbox">${line('AM', am)}${line('PM', pm)}</div>`;
 }
 
 function renderCalendar(){
@@ -173,8 +186,11 @@ function renderCalendar(){
     if (!d) st.push('nodata');
     else if (d.closed){ st.push('closed'); inner = '<div class="tm">休館日</div>'; }
     else {
-      const rs = ranges(d.slots, f);
-      if (rs.length){ if (who !== 'TR') st.push('work'); inner = `<div class="tm en">${rs.map(([a,b]) => short(a)+'-'+short(b)).join('<br>')}</div>`; }
+      if (who === 'TR') inner = trCell(d.slots);
+      else {
+        const rs = ranges(d.slots, f);
+        if (rs.length){ st.push('work'); inner = `<div class="tm en">${rs.map(([a,b]) => short(a)+'-'+short(b)).join('<br>')}</div>`; }
+      }
     }
     h += `<div class="c ${st.join(' ')}"><div class="dn en">${dd}</div>${inner}</div>`;
   }
