@@ -149,7 +149,7 @@ function renderWho(){
 }
 
 function renderView(){
-  const ex = '数字は時刻です（例：<span class="en">9-14</span> は 9:00〜14:00、<span class="en">9:30-13</span> は 9:30〜13:00）。';
+  const ex = '数字は時刻です。<br>（例：<span class="en">9-14</span> は 9:00〜14:00、<span class="en">9:30-13</span> は 9:30〜13:00）';
   document.getElementById('legend').innerHTML = who === 'TR' ? '' : ex + '<br>色の付いた日が出勤日です。';
   renderCalendar();
 }
