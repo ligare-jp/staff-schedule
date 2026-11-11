@@ -3,248 +3,192 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>スタッフ出勤状況｜LIGARE MEDICAL FITNESS</title>
+<title>フロアトレーニング 空き状況｜LIGARE MEDICAL FITNESS</title>
 <style>
   :root{
-    --navy:#425b70; --block:#dfe7ea; --pale:#eff3f4; --bg:#f3f6f7;
-    --brand:#d2e0e1;
+    --navy:#425b70;      /* 文字・アイコンの色（ホームページと同じ紺） */
+    --block:#dfe7ea;     /* 濃いほうの淡色ブロック */
+    --pale:#eff3f4;      /* 淡いブロック */
+    --bg:#f3f6f7;        /* ページ背景 */
     --ink:#2b3a45; --sub:#7d8b95; --mute:#b4bec5; --line:#e7edef;
-    --sat:#4f7fa8;
+    --few:#b07514;
   }
   *{box-sizing:border-box;margin:0;padding:0}
   body{font-family:"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif;
        color:var(--ink);background:var(--bg);-webkit-font-smoothing:antialiased;letter-spacing:.04em}
   .en{font-family:"Avenir Next","Helvetica Neue",Arial,sans-serif}
-  .wrap{max-width:640px;margin:0 auto;padding-bottom:48px;background:#fff;min-height:100vh}
+  .wrap{max-width:600px;margin:0 auto;padding-bottom:48px;background:#fff;min-height:100vh}
 
   header{padding:36px 24px 24px}
   .brand{font-size:10px;letter-spacing:.24em;color:var(--sub)}
   h1{font-size:28px;font-weight:500;letter-spacing:.12em;color:var(--navy);margin-top:10px;line-height:1.2}
   .sub{font-size:13px;color:var(--ink);margin-top:6px}
   .updated{font-size:11px;color:var(--sub);margin-top:14px}
-  .scope{margin-top:20px;padding:18px 20px;background:var(--pale);font-size:12.5px;line-height:1.9}
+  .scope{margin-top:20px;padding:18px 20px;background:var(--pale);font-size:12.5px;line-height:1.9;color:var(--ink)}
   .scope b{color:var(--navy)}
+  .rule{margin-top:10px}
 
-  .months{display:flex;gap:6px;padding:12px 24px;background:#fff;border-bottom:1px solid var(--line)}
-  .month{flex:1;padding:10px 0;border:0;background:var(--pale);font:inherit;font-size:14px;
-         color:var(--navy);cursor:pointer}
-  .month[aria-selected="true"]{background:var(--navy);color:#fff}
+  .days{display:flex;gap:6px;overflow-x:auto;padding:12px 24px;background:#fff;
+        position:sticky;top:0;z-index:2;scrollbar-width:none;border-bottom:1px solid var(--line)}
+  .days::-webkit-scrollbar{display:none}
+  .day{flex:0 0 auto;width:54px;padding:9px 0 8px;border:0;background:var(--pale);
+       text-align:center;cursor:pointer;font:inherit;color:var(--navy)}
+  .day .md{font-size:15px;font-weight:500}
+  .day .dw{font-size:10px;margin-top:3px;color:var(--sub)}
+  .day.none .md,.day.closed .md{color:var(--mute)}
+  .day.closed .dw{color:var(--mute)}
+  .day[aria-selected="true"]{background:var(--navy);color:#fff}
+  .day[aria-selected="true"] .md,.day[aria-selected="true"] .dw{color:#fff}
 
-  .whowrap{position:relative}
-  .who{display:flex;gap:6px;overflow-x:auto;padding:12px 24px 0;scrollbar-width:none;scroll-behavior:smooth}
-  /* 左右にまだボタンがあるときの矢印 */
-  .whoarrow{position:absolute;top:12px;bottom:0;width:44px;border:0;padding:0;cursor:pointer;
-            display:flex;align-items:center;font:inherit;font-size:20px;color:var(--navy);
-            opacity:0;pointer-events:none;transition:opacity .2s}
-  .whoarrow.r{right:0;justify-content:flex-end;padding-right:6px;background:linear-gradient(to right,rgba(255,255,255,0),#fff 60%)}
-  .whoarrow.l{left:0;justify-content:flex-start;padding-left:6px;background:linear-gradient(to left,rgba(255,255,255,0),#fff 60%)}
-  .whoarrow.show{opacity:1;pointer-events:auto}
-  .whoarrow span{display:inline-flex;width:24px;height:24px;border-radius:50%;background:var(--brand);
-                 align-items:center;justify-content:center;font-size:15px;line-height:1}
-  .who::-webkit-scrollbar{display:none}
-  .who button{flex:0 0 auto;padding:8px 14px;border:1px solid var(--block);background:#fff;font:inherit;
-              font-size:13px;color:var(--navy);cursor:pointer;border-radius:999px}
-  .who button[aria-pressed="true"]{background:var(--brand);border-color:var(--brand);font-weight:600}
-
-  .cal{margin:0 8px;display:grid;grid-template-columns:repeat(6,1fr);gap:3px}
-  .cal .hd{text-align:center;font-size:11px;color:var(--sub);padding:8px 0 4px}
-  .cal .hd.sat{color:var(--sat)}
-  .cal .c{min-height:64px;padding:6px 2px 6px;background:#fff;box-shadow:inset 0 0 0 1px var(--line);text-align:center}
-  .cal .c .dn{font-size:12px;color:var(--sub);line-height:1}
-  .cal .c .tm{margin-top:6px;font-size:11.5px;font-weight:600;color:var(--navy);line-height:1.5;
-              letter-spacing:0;white-space:nowrap;font-variant-numeric:tabular-nums}
-  .cal .c.work{background:var(--brand);box-shadow:none}
-  .cal .c.work .dn{color:var(--navy)}
-  .cal .c .tm.trbox{font-size:10.5px;font-weight:400;line-height:1.7}
-  .cal .c .trno{color:#d0392b;font-weight:400}
-  .cal .c.closed{background:var(--pale);box-shadow:none}
-  .cal .c.closed .tm{font-weight:400;color:#5f6e78;font-size:10.5px}
-  .cal .c.blank{background:none;box-shadow:none}
-  .cal .c.nodata{background:none;box-shadow:none}
-  .cal .c.nodata .dn{color:var(--mute)}
-  .cal .c.past{opacity:.4}
-  .cal .c.today{box-shadow:inset 0 0 0 2px var(--navy)}
-
-  .legend{margin:16px 12px 8px;font-size:11px;color:var(--sub);line-height:1.8}
-
+  .title{padding:28px 24px 4px;font-size:15px;color:var(--navy)}
+  .sec{display:flex;align-items:center;justify-content:space-between;margin:20px 24px 0;
+       padding:12px 16px;background:var(--block);font-size:12px;color:var(--navy)}
+  .sec .range{font-size:14px;font-weight:500}
+  .sec .tr{display:inline-flex;align-items:center;gap:6px}
+  .sec .tr svg{width:13px;height:13px}
+  .sec.off{background:var(--pale);color:var(--sub)}
+  .slots{margin:0 24px}
+  .slot{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;
+        border-bottom:1px solid var(--line)}
+  .slot .t{font-size:17px;font-weight:500;color:var(--navy);font-variant-numeric:tabular-nums}
+  .slot .s{display:flex;align-items:center;gap:10px;font-size:12.5px;color:var(--ink)}
+  .slot .mark{width:18px;text-align:center;font-size:16px;color:var(--navy)}
+  .few .s,.few .mark{color:var(--few)}
+  .full .t,.full .s,.full .mark{color:var(--mute)}
 
   .msg{padding:48px 24px;text-align:center;color:var(--sub);font-size:13px;line-height:1.9}
-  .note{margin:32px 24px 0;padding:18px 20px;background:var(--pale);font-size:12px;line-height:1.9;color:var(--sub)}
+  .note{margin:40px 24px 0;padding:18px 20px;background:var(--pale);font-size:12px;line-height:1.9;color:var(--sub)}
   .note b{color:var(--navy);font-weight:600}
   .demo{background:#fff4d6;color:#7a5a00;font-size:12px;text-align:center;padding:6px}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <div class="demo" id="demo" hidden>サンプル表示です（実際の出勤状況ではありません）</div>
+  <div class="demo" id="demo" hidden>サンプル表示です（実際の予約状況ではありません）</div>
   <header>
     <div class="brand en">LIGARE MEDICAL FITNESS</div>
-    <h1 class="en">STAFF SCHEDULE</h1>
-    <div class="sub">スタッフ出勤状況</div>
+    <h1 class="en">FLOOR TRAINING</h1>
+    <div class="sub">フロアトレーニング 空き状況</div>
     <div class="updated" id="updated">読み込み中…</div>
     <div class="scope">
-      <b>担当トレーナーの出勤日</b>、<b>フロアトレーナーの在中状況</b>を確認できます。
+      <b>月会費会員様専用</b>のページです。<br>
+      確認できるのは<b>フロアでのトレーニングの空き状況のみ</b>です。コンディショニングの空き状況は表示していません。
+      <div class="rule">時刻は<b>開始時刻</b>です。フロアトレーニングは<b>60分</b>で、開始から60分続けて空いている枠に○△を表示しています。</div>
     </div>
   </header>
-  <nav class="months" id="months" role="tablist" aria-label="月"></nav>
-  <div class="whowrap">
-    <nav class="who" id="who" aria-label="スタッフ"></nav>
-    <button class="whoarrow l" id="whoL" aria-label="左へ"><span>‹</span></button>
-    <button class="whoarrow r" id="whoR" aria-label="右へ"><span>›</span></button>
-  </div>
-  <div class="legend" id="legend"></div>
-  <div id="body"></div>
+  <nav class="days" id="days" role="tablist" aria-label="日付"></nav>
+  <div class="title" id="title"></div>
+  <div id="slots"></div>
   <div class="note">
-    <b>ご予約の変更やキャンセルはLINEでご連絡ください。</b><br>
-    出勤予定は変更になる場合があります。
+    <b>ご予約、変更やキャンセルはLINEでご連絡ください。</b><br>
+    表示は目安です。タイミングによっては、すでに埋まっている場合があります。
   </div>
 </div>
 
 <script>
 // ▼ Apps Script を「ウェブアプリ」として公開したURLをここに貼り付けてください（空のままだとサンプル表示）
-const API_URL = 'https://script.google.com/macros/s/AKfycbxUhuxKYporGGHmB2aRUHp7X16Eb6Uvqwwwz3zNM7wSASqrlbzLxRJsCYCIb6KEf4KykA/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbwFg9sxHv9GXDzm5PDsEcWfVKJpKHSSIHiFosewekrjpIDgPemZucz2C0Ewqtf4lLGw/exec';
 
+const CAPACITY_DEFAULT = 4;
 const DOW = ['日','月','火','水','木','金','土'];
-let data = null, month = null, who = null;   // who: スタッフ名 / 'TR'
-try { const h = decodeURIComponent(location.hash.slice(1)); if (h) who = h; } catch(e){}
+let data = null, selected = null;
 
 function jstNow(){ return new Date(Date.now() + (new Date().getTimezoneOffset() + 540) * 60000); }
 function ymd(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
 function parseYmd(s){ const [y,m,d]=s.split('-').map(Number); return new Date(y,m-1,d); }
+
+function endTime(t){ const m = toMin(t)+30; return Math.floor(m/60)+':'+String(m%60).padStart(2,'0'); }
 function toMin(t){ const [h,m]=t.split(':').map(Number); return h*60+m; }
-// 9:00 → 9 / 9:30 → 9:30
-function short(min){ const h = Math.floor(min/60), m = min%60; return m ? h+':'+String(m).padStart(2,'0') : String(h); }
 
-// 条件に合う30分枠が続く範囲をまとめる
-function ranges(slots, f){
-  const out = []; let s = null, p = null;
-  slots.forEach(x => {
-    if (f(x) && s && toMin(x.time) - toMin(p.time) === 30){ p = x; return; }
-    if (s) out.push([toMin(s.time), toMin(p.time)+30]);
-    s = f(x) ? x : null; p = x;
-  });
-  if (s) out.push([toMin(s.time), toMin(p.time)+30]);
-  return out;
+// 開始時刻から60分（この枠と次の30分枠）で何名入れるか。次の枠が続いていなければ0
+function hasNext(slots, i){
+  const next = slots[i+1];
+  return !!next && toMin(next.time) - toMin(slots[i].time) === 30;
+}
+function left60(slots, i){
+  return hasNext(slots, i) ? Math.min(slots[i].left, slots[i+1].left) : 0;
 }
 
-const monthKey = date => date.slice(0,7);
+function status(slots, i){
+  const l60 = left60(slots, i);
+  if (l60 >= 2) return {cls:'ok', mark:'○', text:'残り'+l60+'名'};
+  if (l60 === 1) return {cls:'few', mark:'△', text:'残り1名'};
+  return {cls:'full', mark:'×', text:'満員'};
+}
 
-function renderMonths(){
-  const keys = [...new Set(data.days.map(d => monthKey(d.date)))];
-  const nav = document.getElementById('months');
+function isPast(dateStr, time){
+  const now = jstNow();
+  if (dateStr !== ymd(now)) return dateStr < ymd(now);
+  const [h,m] = time.split(':').map(Number);
+  return h*60+m <= now.getHours()*60 + now.getMinutes();
+}
+
+function renderDays(){
+  const nav = document.getElementById('days');
   nav.innerHTML = '';
-  keys.forEach(k => {
+  data.days.forEach(d => {
+    const dt = parseYmd(d.date);
+    const any = d.slots.some((s,i) => left60(d.slots, i) > 0 && !isPast(d.date, s.time));
     const b = document.createElement('button');
-    b.className = 'month';
+    b.className = 'day' + (d.closed ? ' closed' : any ? '' : ' none');
     b.setAttribute('role','tab');
-    b.setAttribute('aria-selected', k === month);
-    b.textContent = Number(k.slice(5)) + '月';
-    b.onclick = () => { month = k; renderMonths(); renderView(); };
+    b.setAttribute('aria-selected', d.date === selected);
+    b.innerHTML = `<div class="md en">${dt.getMonth()+1}/${dt.getDate()}</div><div class="dw">${d.closed ? '休' : DOW[dt.getDay()]}</div>`;
+    b.onclick = () => { selected = d.date; renderDays(); renderSlots(); };
     nav.appendChild(b);
   });
+  const cur = nav.querySelector('[aria-selected="true"]');
+  if (cur) cur.scrollIntoView({inline:'nearest', block:'nearest'});
 }
 
-// スタッフ選択の左右にボタンが隠れているときだけ矢印を出す
-function updateArrows(){
-  const n = document.getElementById('who');
-  const max = n.scrollWidth - n.clientWidth;
-  document.getElementById('whoL').classList.toggle('show', n.scrollLeft > 4);
-  document.getElementById('whoR').classList.toggle('show', n.scrollLeft < max - 4);
-}
-document.addEventListener('DOMContentLoaded', () => {
-  const n = document.getElementById('who');
-  n.addEventListener('scroll', updateArrows, {passive:true});
-  window.addEventListener('resize', updateArrows);
-  document.getElementById('whoR').onclick = () => n.scrollBy({left: n.clientWidth * 0.6});
-  document.getElementById('whoL').onclick = () => n.scrollBy({left: -n.clientWidth * 0.6});
-});
-
-function renderWho(){
-  const nav = document.getElementById('who');
-  const opts = [...data.staff.map(n => [n, n]), ['TR','フロアTR']];
-  if (!opts.some(o => o[0] === who)) who = opts[0][0];
-  nav.innerHTML = '';
-  opts.forEach(([k, label]) => {
-    const b = document.createElement('button');
-    b.textContent = label;
-    b.setAttribute('aria-pressed', k === who);
-    b.onclick = () => {
-      who = k;
-      history.replaceState(null, '', '#' + encodeURIComponent(k));
-      renderWho(); renderView();
-    };
-    nav.appendChild(b);
-  });
-  // 選んでいるボタンが隠れていたら見える位置へ
-  requestAnimationFrame(() => {
-    const cur = nav.querySelector('[aria-pressed="true"]');
-    if (cur && (cur.offsetLeft < nav.scrollLeft || cur.offsetLeft + cur.offsetWidth > nav.scrollLeft + nav.clientWidth))
-      nav.scrollLeft = cur.offsetLeft - 24;
-    updateArrows();
-  });
-}
-
-function renderView(){
-  document.getElementById('legend').textContent = 'スタッフを選択すると、出勤日時が確認できます。';
-  renderCalendar();
-}
-
-// フロアトレーナー：AM（休憩前）・PM（休憩後）それぞれ在中か不在か
-function trCell(slots){
-  const am = slots.filter(s => toMin(s.time) < 14*60), pm = slots.filter(s => toMin(s.time) >= 14*60);
-  const line = (label, part) => {
-    if (!part.length) return '';                      // 土曜の午後など、枠がない時間帯は出さない
-    const on = part.some(s => s.trainer);
-    return `<div class="trl"><span class="en">${label}</span>：<span class="${on ? '' : 'trno'}">${on ? '在中' : '不在'}</span></div>`;
-  };
-  return `<div class="tm trbox">${line('AM', am)}${line('PM', pm)}</div>`;
-}
-
-function renderCalendar(){
-  const i = data.staff.indexOf(who);
-  const f = who === 'TR' ? (s => s.trainer) : (s => s.on[i]);
-  const byDate = {}; data.days.forEach(d => byDate[d.date] = d);
-  const [y, m] = month.split('-').map(Number);
-  const first = new Date(y, m-1, 1), last = new Date(y, m, 0).getDate();
-  const today = ymd(jstNow());
-  let h = '<div class="cal">';
-  ['月','火','水','木','金','土'].forEach((w, k) => h += `<div class="hd${k === 5 ? ' sat' : ''}">${w}</div>`);
-  // 1日の前の空白（月曜はじまり、日曜は除く）
-  const lead = first.getDay() === 0 ? 0 : first.getDay() - 1;
-  for (let k = 0; k < lead; k++) h += '<div class="c blank"></div>';
-  for (let dd = 1; dd <= last; dd++){
-    const dt = new Date(y, m-1, dd);
-    if (dt.getDay() === 0) continue;
-    const key = ymd(dt), d = byDate[key];
-    const st = [key === today ? 'today' : '', key < today ? 'past' : ''];
-    let inner = '';
-    if (!d) st.push('nodata');
-    else if (d.closed){ st.push('closed'); inner = '<div class="tm">休館日</div>'; }
-    else {
-      if (who === 'TR') inner = trCell(d.slots);
-      else {
-        const rs = ranges(d.slots, f);
-        if (rs.length){ st.push('work'); inner = `<div class="tm en">${rs.map(([a,b]) => short(a)+'-'+short(b)).join('<br>')}</div>`; }
-      }
+function renderSlots(){
+  const d = data.days.find(x => x.date === selected);
+  const dt = parseYmd(d.date);
+  document.getElementById('title').textContent = `${dt.getMonth()+1}月${dt.getDate()}日（${DOW[dt.getDay()]}）`;
+  const wrap = document.getElementById('slots');
+  wrap.innerHTML = '';
+  if (d.closed) { wrap.innerHTML = '<div class="msg">休館日です。</div>'; return; }
+  let box = null, prev = null;
+  d.slots.forEach((s, i) => {
+    // 休憩をはさんだら新しいまとまりにして、トレーナーの在・不在を見出しに出す
+    if (!prev || toMin(s.time) - toMin(prev.time) !== 30 || s.trainer !== prev.trainer) {
+      const end = d.slots.slice(i).find((x, k, a) => !a[k+1] || toMin(a[k+1].time) - toMin(x.time) !== 30 || a[k+1].trainer !== s.trainer);
+      const sec = document.createElement('div');
+      sec.className = 'sec' + (s.trainer === false ? ' off' : '');
+      const icon = '<svg viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="3.2" r="2.6"/><path d="M5 6.5h6l3 3-1.6 1.6L11 9.7V16H5V9.7l-1.4 1.4L2 9.5z"/></svg>';
+      sec.innerHTML = `<span class="range en">${s.time} – ${endTime(end.time)}</span>` +
+        `<span class="tr">${icon}${s.trainer === false ? 'トレーナー不在' : 'トレーナー在中'}</span>`;
+      wrap.appendChild(sec);
+      box = document.createElement('div');
+      box.className = 'slots';
+      wrap.appendChild(box);
     }
-    h += `<div class="c ${st.join(' ')}"><div class="dn en">${dd}</div>${inner}</div>`;
-  }
-  h += '</div>';
-  document.getElementById('body').innerHTML = h;
+    prev = s;
+    if (!hasNext(d.slots, i)) return;   // 休憩前・最終枠など、60分取れない開始時刻は出さない
+    const st = status(d.slots, i);
+    const past = isPast(d.date, s.time);
+    const el = document.createElement('div');
+    el.className = 'slot ' + (past ? 'full past' : st.cls);
+    el.innerHTML = `<span class="t en">${s.time}</span><span class="s">${past ? '終了' : st.text}<span class="mark">${past ? '－' : st.mark}</span></span>`;
+    box.appendChild(el);
+  });
 }
 
 function render(){
   if (!data.days.length){
-    document.getElementById('months').innerHTML = '';
-    document.getElementById('body').innerHTML = '<div class="msg">表示できる予定がありません。</div>';
+    document.getElementById('slots').innerHTML = '';
+    document.getElementById('days').innerHTML = '';
+    document.getElementById('title').innerHTML = '<div class="msg">表示できる予定がありません。</div>';
     return;
   }
-  const keys = data.days.map(d => monthKey(d.date));
-  if (!month || !keys.includes(month)) month = keys.includes(monthKey(ymd(jstNow()))) ? monthKey(ymd(jstNow())) : keys[0];
+  if (!selected || !data.days.some(d => d.date === selected)) {
+        const firstOpen = data.days.find(d => d.slots.some(s => !isPast(d.date, s.time)));
+    selected = (firstOpen || data.days[0]).date;
+  }
   const u = data.updated ? new Date(data.updated) : new Date();
   document.getElementById('updated').textContent =
     `${u.getMonth()+1}/${u.getDate()} ${String(u.getHours()).padStart(2,'0')}:${String(u.getMinutes()).padStart(2,'0')} 時点`;
-  renderMonths(); renderWho(); renderView();
+  renderDays(); renderSlots();
 }
 
 async function load(){
@@ -255,34 +199,24 @@ async function load(){
     render();
   } catch (e) {
     document.getElementById('updated').textContent = '';
-    document.getElementById('body').innerHTML =
-      '<div class="msg">出勤状況を読み込めませんでした。<br>時間をおいて再度お試しください。</div>';
+    document.getElementById('slots').innerHTML =
+      '<div class="msg" style="grid-column:1/-1">空き状況を読み込めませんでした。<br>時間をおいて再度お試しください。</div>';
   }
 }
 
-// サンプル：11月の予約表 5日（木）・6日（金）の形を元に、今月と来月に並べたもの
+// サンプル：1日目は12/1（火）の予約表どおり、2日目以降は少しずつ変えたもの
 function demoData(){
-  const T = ['9:00','9:30','10:00','10:30','11:00','11:30','12:00','12:30','13:00','13:30',
-             '15:00','15:30','16:00','16:30','17:00','17:30','18:00','18:30','19:00','19:30'];
-  const P = s => s.split('').map(Number);
-  const pats = [
-    { tr:[1,1], on:[P('00000000001111111111'),P('00000000000000000000'),P('11111111001111111100'),P('00000000000000000000'),P('00011111110000111111'),P('01111111110011111111')] },
-    { tr:[0,1], on:[P('00011111111111111111'),P('11111111001111111111'),P('01111111110000111111'),P('11111111110000000000'),P('00001111110011111111'),P('00000000000000000000')] },
-    { tr:[1,0], on:[P('11111111110000000000'),P('00000000001111111111'),P('00000000000000000000'),P('00001111111111111111'),P('11111111111111111111'),P('00000000001111111100')] },
-  ];
-  const sat = { tr:[1,1], on:[P('11111111110000000000'),P('11111111000000000000'),P('00000000000000000000'),P('11111111110000000000'),P('00000000000000000000'),P('11111111000000000000')] };
-  const days = []; const n = jstNow();
-  const end = new Date(n.getFullYear(), n.getMonth()+2, 0);
-  for (let d = new Date(n.getFullYear(), n.getMonth(), 1), i = 0; d <= end; d.setDate(d.getDate()+1), i++){
+  const times = ['9:00','9:30','10:00','10:30','11:00','11:30','12:00','12:30','13:00','13:30',
+                 '15:00','15:30','16:00','16:30','17:00','17:30','18:00','18:30','19:00','19:30'];
+  const base = [2,1,2,2,1,1,3,4,4,4,4,4,3,3,4,4,3,3,3,3];
+  const days = []; const start = jstNow();
+  for (let i = 0; days.length < 12; i++){
+    const d = new Date(start.getFullYear(), start.getMonth(), start.getDate()+i);
     if (d.getDay() === 0) continue;
-    if (d.getMonth() === 0 && d.getDate() <= 3){ days.push({date: ymd(d), closed:true, slots:[]}); continue; }
-    const p = d.getDay() === 6 ? sat : pats[i % 3];
-    const T2 = d.getDay() === 6 ? T.slice(0,10) : T;
-    days.push({date: ymd(d), slots: T2.map((t,k) => ({time:t, trainer: !!p.tr[k < 10 ? 0 : 1], on: p.on.map(a => a[k])}))});
+    const slots = times.map((t,k) => ({time:t, trainer: !(i%4===2 && k>=10), left: i===0 ? base[k] : Math.max(0, Math.min(4, base[k] + ((i*7+k*3)%5===0 ? -3 : (i+k)%4===0 ? 1 : 0)))}));
+    days.push(i===5 ? {date: ymd(d), closed:true, slots:[]} : {date: ymd(d), slots});
   }
-  days.find(x => x.date > ymd(n) && !x.closed && parseYmd(x.date).getDay() === 3).closed = true;
-  days.forEach(x => { if (x.closed) x.slots = []; });
-  return {updated: new Date().toISOString(), staff:['平','奥村','三上','三義','新井','佐藤'], days};
+  return {updated: new Date().toISOString(), capacity:4, days};
 }
 
 load();
