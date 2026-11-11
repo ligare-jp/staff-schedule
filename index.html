@@ -30,7 +30,17 @@
          color:var(--navy);cursor:pointer}
   .month[aria-selected="true"]{background:var(--navy);color:#fff}
 
-  .who{display:flex;gap:6px;overflow-x:auto;padding:12px 24px 0;scrollbar-width:none}
+  .whowrap{position:relative}
+  .who{display:flex;gap:6px;overflow-x:auto;padding:12px 24px 0;scrollbar-width:none;scroll-behavior:smooth}
+  /* 左右にまだボタンがあるときの矢印 */
+  .whoarrow{position:absolute;top:12px;bottom:0;width:44px;border:0;padding:0;cursor:pointer;
+            display:flex;align-items:center;font:inherit;font-size:20px;color:var(--navy);
+            opacity:0;pointer-events:none;transition:opacity .2s}
+  .whoarrow.r{right:0;justify-content:flex-end;padding-right:6px;background:linear-gradient(to right,rgba(255,255,255,0),#fff 60%)}
+  .whoarrow.l{left:0;justify-content:flex-start;padding-left:6px;background:linear-gradient(to left,rgba(255,255,255,0),#fff 60%)}
+  .whoarrow.show{opacity:1;pointer-events:auto}
+  .whoarrow span{display:inline-flex;width:24px;height:24px;border-radius:50%;background:var(--brand);
+                 align-items:center;justify-content:center;font-size:15px;line-height:1}
   .who::-webkit-scrollbar{display:none}
   .who button{flex:0 0 auto;padding:8px 14px;border:1px solid var(--block);background:#fff;font:inherit;
               font-size:13px;color:var(--navy);cursor:pointer;border-radius:999px}
@@ -77,7 +87,11 @@
     </div>
   </header>
   <nav class="months" id="months" role="tablist" aria-label="月"></nav>
-  <nav class="who" id="who" aria-label="スタッフ"></nav>
+  <div class="whowrap">
+    <nav class="who" id="who" aria-label="スタッフ"></nav>
+    <button class="whoarrow l" id="whoL" aria-label="左へ"><span>‹</span></button>
+    <button class="whoarrow r" id="whoR" aria-label="右へ"><span>›</span></button>
+  </div>
   <div class="legend" id="legend"></div>
   <div id="body"></div>
   <div class="note">
@@ -130,6 +144,21 @@ function renderMonths(){
   });
 }
 
+// スタッフ選択の左右にボタンが隠れているときだけ矢印を出す
+function updateArrows(){
+  const n = document.getElementById('who');
+  const max = n.scrollWidth - n.clientWidth;
+  document.getElementById('whoL').classList.toggle('show', n.scrollLeft > 4);
+  document.getElementById('whoR').classList.toggle('show', n.scrollLeft < max - 4);
+}
+document.addEventListener('DOMContentLoaded', () => {
+  const n = document.getElementById('who');
+  n.addEventListener('scroll', updateArrows, {passive:true});
+  window.addEventListener('resize', updateArrows);
+  document.getElementById('whoR').onclick = () => n.scrollBy({left: n.clientWidth * 0.6});
+  document.getElementById('whoL').onclick = () => n.scrollBy({left: -n.clientWidth * 0.6});
+});
+
 function renderWho(){
   const nav = document.getElementById('who');
   const opts = [...data.staff.map(n => [n, n]), ['TR','フロアTR']];
@@ -145,6 +174,13 @@ function renderWho(){
       renderWho(); renderView();
     };
     nav.appendChild(b);
+  });
+  // 選んでいるボタンが隠れていたら見える位置へ
+  requestAnimationFrame(() => {
+    const cur = nav.querySelector('[aria-pressed="true"]');
+    if (cur && (cur.offsetLeft < nav.scrollLeft || cur.offsetLeft + cur.offsetWidth > nav.scrollLeft + nav.clientWidth))
+      nav.scrollLeft = cur.offsetLeft - 24;
+    updateArrows();
   });
 }
 
