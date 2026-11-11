@@ -163,7 +163,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function renderWho(){
   const nav = document.getElementById('who');
-  const opts = [...data.staff.map(n => [n, n]), ['TR','フロアTR']];
+  const opts = [...data.staff.map(n => [n, n]), ['TR','フロア']];
   if (!opts.some(o => o[0] === who)) who = opts[0][0];
   nav.innerHTML = '';
   opts.forEach(([k, label]) => {
