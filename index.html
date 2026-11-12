@@ -4,6 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>スタッフ出勤状況｜LIGARE MEDICAL FITNESS</title>
+<!-- リンクを送ったときに表示されるタイトルと説明 -->
+<meta name="description" content="担当トレーナーの出勤日、フロアトレーナーの在中状況を確認できます。">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="LIGARE MEDICAL FITNESS">
+<meta property="og:title" content="スタッフ出勤状況｜LIGARE MEDICAL FITNESS">
+<meta property="og:description" content="担当トレーナーの出勤日、フロアトレーナーの在中状況を確認できます。">
+<meta name="twitter:card" content="summary">
 <style>
   :root{
     --navy:#425b70; --block:#dfe7ea; --pale:#eff3f4; --bg:#f3f6f7;
@@ -78,7 +85,7 @@
 </head>
 <body>
 <div class="wrap">
-  <div class="demo" id="demo" hidden>サンプル表示です（実際の出勤状況ではありません）</div>
+  <div class="demo" id="demo" hidden></div>
   <header>
     <div class="brand en">LIGARE MEDICAL FITNESS</div>
     <h1 class="en">STAFF SCHEDULE</h1>
@@ -250,7 +257,7 @@ function render(){
 }
 
 async function load(){
-  if (!API_URL){ data = demoData(); document.getElementById('demo').hidden = false; render(); return; }
+  if (!API_URL){ data = demoData(); const dm = document.getElementById('demo'); dm.textContent = 'サンプル表示です（実際の出勤状況ではありません）'; dm.hidden = false; render(); return; }
   try {
     const res = await fetch(API_URL, {cache:'no-store'});
     data = await res.json();
